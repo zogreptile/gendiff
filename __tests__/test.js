@@ -16,3 +16,11 @@ test('YAML configs', () => {
 
   expect(gendiff(filePathBefore, filePathAfter)).toEqual(fileExpected);
 });
+
+test('INI configs', () => {
+  const filePathBefore = './__tests__/__fixtures__/before.ini';
+  const filePathAfter = './__tests__/__fixtures__/after.ini';
+  const fileExpected = fs.readFileSync('./__tests__/__fixtures__/expected.txt', 'utf-8');
+
+  expect(gendiff(filePathBefore, filePathAfter)).toEqual(fileExpected);
+});
