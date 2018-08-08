@@ -1,25 +1,33 @@
+import fs from 'fs';
+import path from 'path';
 import { has, union } from 'lodash';
-import parseConfig from './parseConfig';
+import getParser from './config-parser';
 
-const compare = (file1, file2) => {
-  const f1 = parseConfig(file1);
-  const f2 = parseConfig(file2);
+const compare = (filePath1, filePath2) => {
+  const fileExtension = path.extname(filePath1);
+  const parseConfig = getParser(fileExtension);
+  const parsedFile1 = parseConfig(fs.readFileSync(filePath1));
+  const parsedFile2 = parseConfig(fs.readFileSync(filePath2));
 
-  return union(Object.keys(f1), Object.keys(f2)).reduce((acc, key) => {
-    if (has(f1, key) && has(f2, key)) {
-      return f1[key] === f2[key] ?
-        [...acc, `    ${key}: ${f1[key]}`] :
-        [...acc, `  - ${key}: ${f1[key]}`, `  + ${key}: ${f2[key]}`];
+  const filesKeys = union(Object.keys(parsedFile1), Object.keys(parsedFile2));
+
+  const comparisonResult = filesKeys.reduce((acc, key) => {
+    if (has(parsedFile1, key) && has(parsedFile2, key)) {
+      return parsedFile1[key] === parsedFile2[key] ?
+        [...acc, `    ${key}: ${parsedFile1[key]}`] :
+        [...acc, `  - ${key}: ${parsedFile1[key]}`, `  + ${key}: ${parsedFile2[key]}`];
     }
 
-    if (has(f1, key) && !has(f2, key)) {
-      return [...acc, `  - ${key}: ${f1[key]}`];
+    if (has(parsedFile1, key) && !has(parsedFile2, key)) {
+      return [...acc, `  - ${key}: ${parsedFile1[key]}`];
     }
 
-    return [...acc, `  + ${key}: ${f2[key]}`];
+    return [...acc, `  + ${key}: ${parsedFile2[key]}`];
   }, []);
+
+  return comparisonResult;
 };
 
 const print = coll => `{\n${coll.map(el => `${el}\n`).join('')}}`;
 
-export default (file1, file2) => print(compare(file1, file2));
+export default (filePath1, filePath2) => print(compare(filePath1, filePath2));
