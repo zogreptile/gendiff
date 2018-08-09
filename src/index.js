@@ -6,8 +6,8 @@ import getParser from './config-parser';
 const compare = (filePath1, filePath2) => {
   const fileExtension = path.extname(filePath1);
   const parseConfig = getParser(fileExtension);
-  const parsedFile1 = parseConfig(fs.readFileSync(filePath1));
-  const parsedFile2 = parseConfig(fs.readFileSync(filePath2));
+  const parsedFile1 = parseConfig(fs.readFileSync(filePath1, 'utf-8'));
+  const parsedFile2 = parseConfig(fs.readFileSync(filePath2, 'utf-8'));
 
   const filesKeys = union(Object.keys(parsedFile1), Object.keys(parsedFile2));
 
