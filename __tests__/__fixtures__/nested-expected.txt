@@ -1,0 +1,11 @@
+{
+  - lvl1-1: one,
+  + lvl1-1: one-one,
+  - lvl1-2: two,
+    lvl1-3: "three",
+    lvl1-4: {
+      lvl2-1: four,
+      lvl2-2: five,
+    + lvl2-3: six
+    }
+}
