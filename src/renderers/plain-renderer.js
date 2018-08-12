@@ -9,7 +9,7 @@ const stringify = (value) => {
   return `'${value}'`;
 };
 
-const render = (ast) => {
+const render = (ast, namePath = []) => {
   const typeFormats = {
     nested: (fullName, node, fn) => fn(node.children, fullName),
     unchanged: fullName => `Property '${fullName.join('.')}' is unchanged`,
@@ -19,13 +19,10 @@ const render = (ast) => {
     removed: fullName => `Property '${fullName.join('.')}' was removed`,
   };
 
-  const iter = (tree, fullName = []) =>
-    tree.map((node) => {
-      const updatedFullName = [...fullName, node.name];
-      return typeFormats[node.type](updatedFullName, node, iter);
-    }).join('\n');
-
-  return iter(ast, []);
+  return ast.map((node) => {
+    const fullName = [...namePath, node.name];
+    return typeFormats[node.type](fullName, node, render);
+  }).join('\n');
 };
 
 export default render;
