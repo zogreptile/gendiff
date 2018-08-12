@@ -25,3 +25,7 @@ Library and CLI-utility for finding differences between config files.
 ## Task 6
 
 [Asciinema](https://asciinema.org/a/efvt5eABbPy3r29jMG2zXlGrb)
+
+## Task 7
+
+[Asciinema](https://asciinema.org/a/T10G2oH9PHXTh2hAQJufZEP2z)
