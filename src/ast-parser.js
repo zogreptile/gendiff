@@ -4,13 +4,12 @@ const typeActions = [
   {
     type: 'nested',
     check: (obj1, obj2, key) => _.isObject(obj1[key]) && _.isObject(obj2[key]),
-    process: (oldValue, newValue, fn) =>
-      ({ oldValue: '', newValue: '', children: fn(oldValue, newValue) }),
+    process: (oldValue, newValue, fn) => ({ children: fn(oldValue, newValue) }),
   },
   {
     type: 'unchanged',
     check: (obj1, obj2, key) => obj1[key] === obj2[key],
-    process: oldValue => ({ oldValue }),
+    process: oldValue => ({ value: oldValue }),
   },
   {
     type: 'changed',
@@ -20,12 +19,12 @@ const typeActions = [
   {
     type: 'added',
     check: (obj1, obj2, key) => _.has(obj1, key) === false,
-    process: (oldValue, newValue) => ({ newValue }),
+    process: (oldValue, newValue) => ({ value: newValue }),
   },
   {
     type: 'removed',
     check: (obj1, obj2, key) => _.has(obj2, key) === false,
-    process: oldValue => ({ oldValue }),
+    process: oldValue => ({ value: oldValue }),
   },
 ];
 
@@ -34,10 +33,9 @@ const constructAST = (obj1 = {}, obj2 = {}) => {
 
   return commonKeys.map((key) => {
     const { type, process } = _.find(typeActions, ({ check }) => check(obj1, obj2, key));
-    const { oldValue = '', newValue = '', children = [] } = process(obj1[key], obj2[key], constructAST);
 
     return {
-      type, name: key, oldValue, newValue, children,
+      type, name: key, ...process(obj1[key], obj2[key], constructAST),
     };
   });
 };

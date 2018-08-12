@@ -3,62 +3,33 @@ import _ from 'lodash';
 const indent = depth => '    '.repeat(depth);
 
 const stringify = (value, depth) => {
-  if (_.isObject(value)) {
-    const keys = Object.keys(value);
-    const result = keys.map(key =>
-      `    ${key}: ${stringify(value[key], depth + 1)}`).join('\n');
-
-    return `{
-${indent(depth + 1)}${result}
-${indent(depth + 1)}}`;
+  if (!_.isObject(value)) {
+    return value;
   }
 
-  return value;
+  const keys = Object.keys(value);
+  const result = keys
+    .map(key => `    ${key}: ${stringify(value[key], depth + 1)}`)
+    .join('\n');
+
+  return `{\n${indent(depth + 1)}${result}\n${indent(depth + 1)}}`;
 };
 
-const typeFormats = [
-  {
-    type: 'nested',
-    format: (depth, name, oldValue, newValue, children, fn) => `
-${indent(depth)}    ${name}: {${indent(depth + 1)}${fn(children, depth + 1)}
-${indent(depth + 1)}}`,
-  },
-  {
-    type: 'unchanged',
-    format: (depth, name, oldValue) => `
-${indent(depth)}    ${name}: ${stringify(oldValue, depth)}`,
-  },
-  {
-    type: 'changed',
-    format: (depth, name, oldValue, newValue, children, fn) => `
-${indent(depth)}  - ${name}: ${stringify(oldValue, depth)}
-${indent(depth)}  + ${name}: ${stringify(newValue, depth, fn)}`,
-  },
-  {
-    type: 'added',
-    format: (depth, name, oldValue, newValue, children, fn) => `
-${indent(depth)}  + ${name}: ${stringify(newValue, depth, fn)}`,
-  },
-  {
-    type: 'removed',
-    format: (depth, name, oldValue, newValue, children, fn) => `
-${indent(depth)}  - ${name}: ${stringify(oldValue, depth, fn)}`,
-  },
-];
+const render = (ast, depth = 0) => {
+  const typeFormats = {
+    nested: node => `${indent(depth + 1)}${node.name}: ${render(node.children, depth + 1)}`,
+    unchanged: node => `${indent(depth + 1)}${node.name}: ${stringify(node.value, depth)}`,
+    changed: node => [
+      `${indent(depth)}  - ${node.name}: ${stringify(node.oldValue, depth)}`,
+      `${indent(depth)}  + ${node.name}: ${stringify(node.newValue, depth)}`,
+    ],
+    added: node => `${indent(depth)}  + ${node.name}: ${stringify(node.value, depth)}`,
+    removed: node => `${indent(depth)}  - ${node.name}: ${stringify(node.value, depth)}`,
+  };
 
-export default (ast) => {
-  const iter = (tree, depth) => tree.map((node) => {
-    const { format } = _.find(typeFormats, el => el.type === node.type);
+  const result = _.flatten(ast.map(node => typeFormats[node.type](node))).join('\n');
 
-    return format(
-      depth,
-      node.name,
-      node.oldValue,
-      node.newValue,
-      node.children,
-      iter,
-    );
-  }).join('');
-
-  return `{${iter(ast, 0)}\n}`;
+  return `{\n${result}\n${indent(depth)}}`;
 };
+
+export default render;
